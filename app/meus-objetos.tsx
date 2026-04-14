@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+=======
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { router } from 'expo-router';
+>>>>>>> a6dae8663b18bc07cb5f1e4090e4e049e98a671c
 import CustomButton from '../components/CustomButton';
 
 export default function MeusObjetosScreen() {
@@ -70,6 +76,7 @@ export default function MeusObjetosScreen() {
       </ScrollView>
 
       <View style={styles.actionsArea}>
+<<<<<<< HEAD
             <View style={styles.actionsRow}>
         <CustomButton
           title="Gerar relatório"
@@ -82,13 +89,29 @@ export default function MeusObjetosScreen() {
           style={styles.smallButton}
           onPress={() => router.push('/configuracoes')}
         />
+=======
+        <View style={styles.actionsRow}>
+          <CustomButton
+            title="Gerar relatório"
+            variant="secondary"
+            style={styles.smallButton}
+          />
+          <CustomButton
+            title="Meus objetos"
+            variant="secondary"
+            style={styles.smallButton}
+          />
+>>>>>>> a6dae8663b18bc07cb5f1e4090e4e049e98a671c
         </View>
 
         <CustomButton
           title="Filtrar status"
           variant="secondary"
           style={styles.bottomButton}
+<<<<<<< HEAD
           onPress={() => router.push('/filtrar-status')}
+=======
+>>>>>>> a6dae8663b18bc07cb5f1e4090e4e049e98a671c
         />
       </View>
 

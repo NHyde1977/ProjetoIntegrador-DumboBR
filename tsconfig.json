@@ -14,4 +14,8 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a6dae8663b18bc07cb5f1e4090e4e049e98a671c
