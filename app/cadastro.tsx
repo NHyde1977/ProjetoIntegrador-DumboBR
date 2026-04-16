@@ -1,14 +1,46 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import CustomInput from '../components/CustomInput';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
+import CustomInput from '../components/CustomInput';
 
 export default function CadastroScreen() {
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+
+ function handleCadastro() {
+  if (!nome.trim()) {
+    Alert.alert('Erro', 'Informe o nome e sobrenome.');
+    return;
+  }
+
+  if (cpf.length < 14) {
+    Alert.alert('Erro', 'Informe um CPF válido.');
+    return;
+  }
+
+  if (!email.trim()) {
+    Alert.alert('Erro', 'Informe o email.');
+    return;
+  }
+
+  if (!email.includes('@')) {
+    Alert.alert('Erro', 'Informe um email válido.');
+    return;
+  }
+
+  if (telefone.length < 15) {
+    Alert.alert('Erro', 'Informe um telefone válido.');
+    return;
+  }
+
+  Alert.alert(
+    'Cadastro realizado',
+    'Seu cadastro foi realizado com sucesso.'
+  );
+}
 
   function formatCpf(value: string) {
     const onlyNumbers = value.replace(/\D/g, '');
@@ -61,7 +93,8 @@ export default function CadastroScreen() {
           keyboardType="phone-pad"
         />
 
-        <CustomButton title="Cadastrar" />
+        <CustomButton title="Cadastrar"
+        onPress={handleCadastro} />
       </View>
 
       <CustomButton

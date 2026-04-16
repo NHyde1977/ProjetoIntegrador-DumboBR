@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import CustomInput from '../components/CustomInput';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
+import CustomInput from '../components/CustomInput';
 
 export default function CadastrarObjetoScreen() {
   const [codigoRastreio, setCodigoRastreio] = useState('');
@@ -23,6 +23,28 @@ export default function CadastrarObjetoScreen() {
       currency: 'BRL',
     });
   }
+
+  function handleCadastrarObjeto() {
+  if (!codigoRastreio.trim()) {
+    Alert.alert('Erro', 'Informe o código de rastreio.');
+    return;
+  }
+
+  if (!valorFrete.trim()) {
+    Alert.alert('Erro', 'Informe o valor do frete.');
+    return;
+  }
+
+  if (!valorBem.trim()) {
+    Alert.alert('Erro', 'Informe o valor do bem.');
+    return;
+  }
+
+  Alert.alert(
+    'Objeto cadastrado',
+    'O objeto foi cadastrado com sucesso.'
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -91,6 +113,7 @@ export default function CadastrarObjetoScreen() {
         <CustomButton
           title="Cadastrar"
           style={styles.actionButton}
+          onPress={handleCadastrarObjeto}
         />
       </View>
     </View>

@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
 
-export default function AdicionarEnderecoScreen() {
+export default 
+
+function AdicionarEnderecoScreen() {
   const [cep, setCep] = useState('');
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
@@ -20,6 +22,43 @@ export default function AdicionarEnderecoScreen() {
       .replace(/(\d{5})(\d)/, '$1-$2')
       .slice(0, 9);
   }
+
+  function handleSalvarEndereco() {
+  if (cep.length < 9) {
+    Alert.alert('Erro', 'Informe um CEP válido.');
+    return;
+  }
+
+  if (!logradouro.trim()) {
+    Alert.alert('Erro', 'Informe o logradouro.');
+    return;
+  }
+
+  if (!numero.trim()) {
+    Alert.alert('Erro', 'Informe o número.');
+    return;
+  }
+
+  if (!bairro.trim()) {
+    Alert.alert('Erro', 'Informe o bairro.');
+    return;
+  }
+
+  if (!cidade.trim()) {
+    Alert.alert('Erro', 'Informe a cidade.');
+    return;
+  }
+
+  if (!estado.trim()) {
+    Alert.alert('Erro', 'Informe o estado.');
+    return;
+  }
+
+  Alert.alert(
+    'Endereço salvo',
+    'O endereço foi cadastrado com sucesso.'
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -70,7 +109,8 @@ export default function AdicionarEnderecoScreen() {
           onChangeText={setEstado}
         />
 
-        <CustomButton title="Salvar endereço" />
+        <CustomButton title="Salvar endereço"
+        onPress={handleSalvarEndereco}/>
       </View>
 
       <CustomButton

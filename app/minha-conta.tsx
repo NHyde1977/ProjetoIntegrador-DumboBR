@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
 
@@ -9,6 +9,13 @@ export default function MinhaContaScreen() {
   const [cpf, setCpf] = useState('123.456.789-00');
   const [email, setEmail] = useState('nilo@email.com');
   const [telefone, setTelefone] = useState('(21) 99999-9999');
+
+  function handleSalvarAlteracoes() {
+    Alert.alert(
+      'Dados atualizados',
+      'As alterações da sua conta foram salvas com sucesso.'
+    );
+  }
 
   function formatCpf(value: string) {
     const onlyNumbers = value.replace(/\D/g, '');
@@ -61,7 +68,9 @@ export default function MinhaContaScreen() {
           keyboardType="phone-pad"
         />
 
-        <CustomButton title="Salvar alterações" />
+        <CustomButton title="Salvar alterações"
+        onPress={handleSalvarAlteracoes}
+          />
       </View>
 
       <CustomButton

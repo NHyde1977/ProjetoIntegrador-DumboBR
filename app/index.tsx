@@ -1,10 +1,39 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert, Image, StyleSheet, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
-import { router } from 'expo-router';
+
 
 export default function LoginScreen() {
+
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+
+  function handleLogin() {
+  if (!email.trim()) {
+    Alert.alert('Erro', 'Informe o email.');
+    return;
+  }
+
+  if (!email.includes('@')) {
+    Alert.alert('Erro', 'Informe um email válido.');
+    return;
+  }
+
+  if (!senha.trim()) {
+    Alert.alert('Erro', 'Informe a senha.');
+    return;
+  }
+
+  Alert.alert('Login realizado', 'Acesso efetuado com sucesso.', [
+    {
+      text: 'OK',
+      onPress: () => router.push('/meus-objetos'),
+    },
+  ]);
+}
+
   return (
     <View style={styles.container}>
       <View style={styles.logoArea}>
@@ -16,12 +45,24 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.formArea}>
-        <CustomInput placeholder="Email" />
-        <CustomInput placeholder="Senha" secureTextEntry />
+        <CustomInput placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+
+
+        <CustomInput
+          placeholder="Senha"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
 
         <CustomButton
-          title="Entrar"
-          onPress={() => router.push('/meus-objetos')}/>
+        title="Entrar"
+        onPress={handleLogin}
+      />
       </View>
 
       <View style={styles.actionsArea}>

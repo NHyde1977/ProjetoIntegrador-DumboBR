@@ -1,7 +1,7 @@
 
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
 
@@ -18,6 +18,28 @@ export default function FiltrarStatusScreen() {
       .replace(/(\d{2})(\d)/, '$1/$2')
       .slice(0, 10);
   }
+
+  function handleBuscarFiltro() {
+  if (!statusObjeto.trim()) {
+    Alert.alert('Erro', 'Informe o status do objeto.');
+    return;
+  }
+
+  if (dataEnvio.length < 10) {
+    Alert.alert('Erro', 'Informe uma data de envio válida.');
+    return;
+  }
+
+  if (!intervaloDatas.trim()) {
+    Alert.alert('Erro', 'Informe o intervalo de datas.');
+    return;
+  }
+
+  Alert.alert(
+    'Filtro aplicado',
+    'Os critérios de busca foram aplicados com sucesso.'
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -71,6 +93,7 @@ export default function FiltrarStatusScreen() {
         <CustomButton
           title="Buscar"
           style={styles.actionButton}
+          onPress={handleBuscarFiltro}
         />
       </View>
     </View>
