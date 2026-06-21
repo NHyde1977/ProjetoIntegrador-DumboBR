@@ -1,74 +1,69 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
-import CustomButton from '../components/CustomButton';
-import CustomInput from '../components/CustomInput';
+import { router } from "expo-router";
+import React, { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import CustomButton from "../components/CustomButton";
+import CustomInput from "../components/CustomInput";
+import api from "../services/api";
 
 export default function CadastrarObjetoScreen() {
-  const [codigoRastreio, setCodigoRastreio] = useState('');
-  const [valorFrete, setValorFrete] = useState('');
-  const [valorBem, setValorBem] = useState('');
-  const [taxaAlfandegaria, setTaxaAlfandegaria] = useState('');
-  const [outrosCustos, setOutrosCustos] = useState('');
+  const [codigoRastreio, setCodigoRastreio] = useState("");
+  const [valorFrete, setValorFrete] = useState("");
+  const [valorBem, setValorBem] = useState("");
+  const [taxaAlfandegaria, setTaxaAlfandegaria] = useState("");
+  const [outrosCustos, setOutrosCustos] = useState("");
+  const [status, setStatus] = useState("EM_TRANSITO");
 
-  function formatCurrency(value: string) {
-    const onlyNumbers = value.replace(/\D/g, '');
-
-    if (!onlyNumbers) return '';
-
-    const numericValue = Number(onlyNumbers) / 100;
-
-    return numericValue.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
+  function converterValor(valor: string) {
+    return Number(valor.replace(",", "."));
   }
 
-  function handleCadastrarObjeto() {
-  if (!codigoRastreio.trim()) {
-    Alert.alert('Erro', 'Informe o código de rastreio.');
-    return;
-  }
+  async function handleCadastrarObjeto() {
+    if (!codigoRastreio.trim()) {
+      window.alert("Informe o código de rastreio.");
+      return;
+    }
 
-  if (!valorFrete.trim()) {
-    Alert.alert('Erro', 'Informe o valor do frete.');
-    return;
-  }
+    if (!valorFrete.trim() || !valorBem.trim()) {
+      window.alert("Informe valor do frete e valor do bem.");
+      return;
+    }
 
-  if (!valorBem.trim()) {
-    Alert.alert('Erro', 'Informe o valor do bem.');
-    return;
-  }
+    try {
+      const body = {
+        codigoRastreio: codigoRastreio.trim(),
+        valorFrete: converterValor(valorFrete),
+        valorBem: converterValor(valorBem),
+        taxaAlfandegaria: taxaAlfandegaria
+          ? converterValor(taxaAlfandegaria)
+          : 0,
+        outrosCustos: outrosCustos ? converterValor(outrosCustos) : 0,
+        status,
+        usuarioId: 0,
+      };
 
-  Alert.alert(
-    'Objeto cadastrado',
-    'O objeto foi cadastrado com sucesso.'
-  );
-}
+      console.log("ENVIANDO OBJETO:", body);
+
+      const response = await api.post("/me/objetos", body);
+
+      console.log("OBJETO CADASTRADO:", response.data);
+
+      window.alert("Objeto cadastrado com sucesso!");
+
+      router.push("/meus-objetos");
+    } catch (error: any) {
+      console.log("ERRO OBJETO:", error?.response?.data || error?.message);
+
+      window.alert(JSON.stringify(error?.response?.data || error?.message));
+    }
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Cadastrar Objeto</Text>
 
-      <View style={styles.tabsContainer}>
-        <View style={[styles.tabButton, styles.tabButtonActive]}>
-          <Text style={[styles.tabText, styles.tabTextActive]}>Sem registro</Text>
-        </View>
-
-        <View style={styles.tabButton}>
-          <Text style={styles.tabText}>Em trânsito</Text>
-        </View>
-
-        <View style={styles.tabButton}>
-          <Text style={styles.tabText}>Entregue</Text>
-        </View>
-      </View>
-
       <View style={styles.formArea}>
-        <Text style={styles.label}>Insira o código de rastreio:</Text>
-
         <CustomInput
-          placeholder="Código de rastreio*"
+          placeholder="Código de rastreio"
           value={codigoRastreio}
           onChangeText={setCodigoRastreio}
         />
@@ -76,46 +71,59 @@ export default function CadastrarObjetoScreen() {
         <CustomInput
           placeholder="Valor do frete"
           value={valorFrete}
-          onChangeText={(text) => setValorFrete(formatCurrency(text))}
+          onChangeText={setValorFrete}
           keyboardType="numeric"
         />
 
         <CustomInput
           placeholder="Valor do bem"
           value={valorBem}
-          onChangeText={(text) => setValorBem(formatCurrency(text))}
+          onChangeText={setValorBem}
           keyboardType="numeric"
         />
 
         <CustomInput
           placeholder="Taxa alfandegária"
           value={taxaAlfandegaria}
-          onChangeText={(text) => setTaxaAlfandegaria(formatCurrency(text))}
+          onChangeText={setTaxaAlfandegaria}
           keyboardType="numeric"
         />
 
         <CustomInput
           placeholder="Outros custos"
           value={outrosCustos}
-          onChangeText={(text) => setOutrosCustos(formatCurrency(text))}
+          onChangeText={setOutrosCustos}
           keyboardType="numeric"
         />
-      </View>
 
-      <View style={styles.actionsRow}>
-        <CustomButton
-          title="Cancelar"
-          variant="secondary"
-          style={styles.actionButton}
-          onPress={() => router.back()}
-        />
+        <Text style={styles.label}>Status</Text>
+
+        <View style={styles.statusArea}>
+          {["SEM_REGISTRO", "POSTADO", "EM_TRANSITO", "ENTREGUE"].map(
+            (item) => (
+              <CustomButton
+                key={item}
+                title={item}
+                variant={status === item ? "primary" : "secondary"}
+                style={styles.statusButton}
+                onPress={() => setStatus(item)}
+              />
+            ),
+          )}
+        </View>
 
         <CustomButton
-          title="Cadastrar"
-          style={styles.actionButton}
+          title="Cadastrar Objeto"
           onPress={handleCadastrarObjeto}
         />
       </View>
+
+      <CustomButton
+        title="Voltar"
+        variant="secondary"
+        style={styles.backButton}
+        onPress={() => router.back()}
+      />
     </View>
   );
 }
@@ -123,62 +131,38 @@ export default function CadastrarObjetoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D2B45',
-    paddingTop: 52,
-    paddingHorizontal: 20,
-    paddingBottom: 28,
+    backgroundColor: "#0D2B45",
+    justifyContent: "center",
+    paddingHorizontal: 24,
   },
   title: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 18,
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 22,
-    gap: 8,
-  },
-  tabButton: {
-    flex: 1,
-    minHeight: 42,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#8FA4B7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-  },
-  tabButtonActive: {
-    backgroundColor: '#F2EEFF',
-    borderColor: '#F2EEFF',
-  },
-  tabText: {
-    color: '#D7DCE2',
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  tabTextActive: {
-    color: '#5E42D8',
+    color: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 28,
   },
   formArea: {
-    flex: 1,
+    width: "100%",
+    maxWidth: 420,
+    alignSelf: "center",
+    marginBottom: 18,
   },
   label: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 14,
+    fontWeight: "600",
+    marginBottom: 10,
   },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 10,
+  statusArea: {
+    gap: 8,
+    marginBottom: 18,
   },
-  actionButton: {
-    flex: 1,
+  statusButton: {
+    minHeight: 42,
+  },
+  backButton: {
+    maxWidth: 220,
+    alignSelf: "center",
   },
 });

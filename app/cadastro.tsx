@@ -1,63 +1,93 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
-import CustomButton from '../components/CustomButton';
-import CustomInput from '../components/CustomInput';
+import { router } from "expo-router";
+import React, { useState } from "react";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import CustomButton from "../components/CustomButton";
+import CustomInput from "../components/CustomInput";
+import api from "../services/api";
 
 export default function CadastroScreen() {
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
+  const [nome, setNome] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [senha, setSenha] = useState("");
 
- function handleCadastro() {
-  if (!nome.trim()) {
-    Alert.alert('Erro', 'Informe o nome e sobrenome.');
-    return;
+  async function handleCadastro() {
+    if (!nome.trim()) {
+      Alert.alert("Erro", "Informe o nome e sobrenome.");
+      return;
+    }
+
+    if (cpf.length < 14) {
+      Alert.alert("Erro", "Informe um CPF válido.");
+      return;
+    }
+
+    if (!email.trim()) {
+      Alert.alert("Erro", "Informe o email.");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      Alert.alert("Erro", "Informe um email válido.");
+      return;
+    }
+
+    if (!senha.trim()) {
+      Alert.alert("Erro", "Informe a senha.");
+      return;
+    }
+
+    if (telefone.length < 15) {
+      Alert.alert("Erro", "Informe um telefone válido.");
+      return;
+    }
+
+    try {
+      console.log("ENVIANDO CADASTRO:", {
+        nome,
+        cpf,
+        email: email.trim(),
+        telefone,
+        senha,
+      });
+
+      const response = await api.post("/usuarios", {
+        nome,
+        cpf,
+        email: email.trim(),
+        telefone,
+        senha,
+      });
+
+      console.log("CADASTRO OK:", response.data);
+
+      window.alert("Cadastro realizado com sucesso!");
+
+      router.push("/");
+    } catch (error: any) {
+      console.log("ERRO CADASTRO:", error?.response?.data || error?.message);
+
+      window.alert(JSON.stringify(error?.response?.data || error?.message));
+    }
   }
-
-  if (cpf.length < 14) {
-    Alert.alert('Erro', 'Informe um CPF válido.');
-    return;
-  }
-
-  if (!email.trim()) {
-    Alert.alert('Erro', 'Informe o email.');
-    return;
-  }
-
-  if (!email.includes('@')) {
-    Alert.alert('Erro', 'Informe um email válido.');
-    return;
-  }
-
-  if (telefone.length < 15) {
-    Alert.alert('Erro', 'Informe um telefone válido.');
-    return;
-  }
-
-  Alert.alert(
-    'Cadastro realizado',
-    'Seu cadastro foi realizado com sucesso.'
-  );
-}
 
   function formatCpf(value: string) {
-    const onlyNumbers = value.replace(/\D/g, '');
+    const onlyNumbers = value.replace(/\D/g, "");
 
     return onlyNumbers
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
       .slice(0, 14);
   }
 
   function formatPhone(value: string) {
-    const onlyNumbers = value.replace(/\D/g, '');
+    const onlyNumbers = value.replace(/\D/g, "");
 
     return onlyNumbers
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2')
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
       .slice(0, 15);
   }
 
@@ -87,14 +117,20 @@ export default function CadastroScreen() {
         />
 
         <CustomInput
+          placeholder="Senha"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
+
+        <CustomInput
           placeholder="Número de telefone celular"
           value={telefone}
           onChangeText={(text) => setTelefone(formatPhone(text))}
           keyboardType="phone-pad"
         />
 
-        <CustomButton title="Cadastrar"
-        onPress={handleCadastro} />
+        <CustomButton title="Cadastrar" onPress={handleCadastro} />
       </View>
 
       <CustomButton
@@ -110,25 +146,25 @@ export default function CadastroScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D2B45',
-    justifyContent: 'center',
+    backgroundColor: "#0D2B45",
+    justifyContent: "center",
     paddingHorizontal: 24,
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 28,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
     marginBottom: 28,
   },
   formArea: {
-    width: '100%',
+    width: "100%",
     maxWidth: 420,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 18,
   },
   backButton: {
     maxWidth: 220,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });

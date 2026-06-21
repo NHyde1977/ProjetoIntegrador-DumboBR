@@ -1,35 +1,67 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import CustomButton from '../components/CustomButton';
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import CustomButton from "../components/CustomButton";
+import api from "../services/api";
+
+type ObjetoRastreado = {
+  id: number;
+  codigoRastreio: string;
+  valorFrete: number;
+  valorBem: number;
+  taxaAlfandegaria: number;
+  outrosCustos: number;
+  status: string;
+  usuarioId: number;
+};
 
 export default function MeusObjetosScreen() {
-  const [statusSelecionado, setStatusSelecionado] = useState('Sem registro');
+  const [statusSelecionado, setStatusSelecionado] = useState("Todos");
+  const [objetos, setObjetos] = useState<ObjetoRastreado[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
-  const objetos = [
-    {
-      id: 1,
-      nome: 'Objeto 1',
-      descricao: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-    },
-    {
-      id: 2,
-      nome: 'Objeto 2',
-      descricao: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-    },
-    {
-      id: 3,
-      nome: 'Objeto 3',
-      descricao: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-    },
-  ];
+  async function carregarObjetos() {
+    try {
+      const response = await api.get("/me/objetos");
+      console.log("OBJETOS:", response.data);
+      setObjetos(response.data);
+    } catch (error: any) {
+      console.log("ERRO OBJETOS:", error?.response?.data || error?.message);
+      window.alert("Erro ao carregar objetos.");
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarObjetos();
+  }, []);
+
+  const objetosFiltrados =
+    statusSelecionado === "Todos"
+      ? objetos
+      : objetos.filter((objeto) => objeto.status === statusSelecionado);
+
+  if (carregando) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Carregando objetos...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Cadastrar Objeto</Text>
+      <Text style={styles.title}>Meus Objetos</Text>
 
       <View style={styles.tabsContainer}>
-        {['Sem registro', 'Em trânsito', 'Entregue'].map((status) => (
+        {["Todos", "SEM_REGISTRO", "EM_TRANSITO", "ENTREGUE"].map((status) => (
           <TouchableOpacity
             key={status}
             style={[
@@ -53,42 +85,58 @@ export default function MeusObjetosScreen() {
       <CustomButton
         title="Cadastrar Objeto"
         style={styles.registerButton}
-        onPress={() => router.push('/cadastrar-objeto')}
+        onPress={() => router.push("/cadastrar-objeto")}
       />
 
-      <ScrollView
+      <FlatList
+        data={objetosFiltrados}
+        keyExtractor={(item) => item.id.toString()}
         style={styles.listArea}
         contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {objetos.map((objeto) => (
-          <View key={objeto.id} style={styles.card}>
-            <Text style={styles.cardTitle}>{objeto.nome}</Text>
-            <Text style={styles.cardDescription}>{objeto.descricao}</Text>
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>Nenhum objeto encontrado.</Text>
+        }
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{item.codigoRastreio}</Text>
+            <Text style={styles.cardDescription}>Status: {item.status}</Text>
+            <Text style={styles.cardDescription}>
+              Valor do bem: R$ {item.valorBem}
+            </Text>
+            <Text style={styles.cardDescription}>
+              Frete: R$ {item.valorFrete}
+            </Text>
+            <Text style={styles.cardDescription}>
+              Taxa alfandegária: R$ {item.taxaAlfandegaria}
+            </Text>
+            <Text style={styles.cardDescription}>
+              Outros custos: R$ {item.outrosCustos}
+            </Text>
           </View>
-        ))}
-      </ScrollView>
+        )}
+      />
 
       <View style={styles.actionsArea}>
-            <View style={styles.actionsRow}>
-        <CustomButton
-          title="Gerar relatório"
-          variant="secondary"
-          style={styles.smallButton}
-        />
-        <CustomButton
-          title="Configurações"
-          variant="secondary"
-          style={styles.smallButton}
-          onPress={() => router.push('/configuracoes')}
-        />
+        <View style={styles.actionsRow}>
+          <CustomButton
+            title="Gerar relatório"
+            variant="secondary"
+            style={styles.smallButton}
+          />
+
+          <CustomButton
+            title="Configurações"
+            variant="secondary"
+            style={styles.smallButton}
+            onPress={() => router.push("/configuracoes")}
+          />
         </View>
 
         <CustomButton
           title="Filtrar status"
           variant="secondary"
           style={styles.bottomButton}
-          onPress={() => router.push('/filtrar-status')}
+          onPress={() => router.push("/filtrar-status")}
         />
       </View>
 
@@ -105,21 +153,21 @@ export default function MeusObjetosScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D2B45',
+    backgroundColor: "#0D2B45",
     paddingTop: 52,
     paddingHorizontal: 20,
     paddingBottom: 28,
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 24,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
     marginBottom: 18,
   },
   tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 18,
     gap: 8,
   },
@@ -128,23 +176,23 @@ const styles = StyleSheet.create({
     minHeight: 42,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#8FA4B7',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#8FA4B7",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 8,
   },
   tabButtonAtiva: {
-    backgroundColor: '#F2EEFF',
-    borderColor: '#F2EEFF',
+    backgroundColor: "#F2EEFF",
+    borderColor: "#F2EEFF",
   },
   tabText: {
-    color: '#D7DCE2',
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
+    color: "#D7DCE2",
+    fontSize: 11,
+    fontWeight: "600",
+    textAlign: "center",
   },
   tabTextAtivo: {
-    color: '#5E42D8',
+    color: "#5E42D8",
   },
   listArea: {
     flex: 1,
@@ -154,21 +202,27 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingBottom: 8,
   },
+  emptyText: {
+    color: "#D7DCE2",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 24,
+  },
   card: {
-    backgroundColor: '#163652',
+    backgroundColor: "#163652",
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#244766',
+    borderColor: "#244766",
   },
   cardTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 8,
   },
   cardDescription: {
-    color: '#D7DCE2',
+    color: "#D7DCE2",
     fontSize: 14,
     lineHeight: 20,
   },
@@ -177,21 +231,21 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   actionsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   smallButton: {
     flex: 1,
   },
   bottomButton: {
-    alignSelf: 'center',
+    alignSelf: "center",
     minWidth: 180,
   },
   backButton: {
     maxWidth: 200,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   registerButton: {
     marginBottom: 18,
-  }
+  },
 });
