@@ -1,39 +1,70 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
-import CustomButton from '../components/CustomButton';
-import CustomInput from '../components/CustomInput';
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import CustomButton from "../components/CustomButton";
+import CustomInput from "../components/CustomInput";
+import api from "../services/api";
 
 export default function MinhaContaScreen() {
-  const [nome, setNome] = useState('Nilo Soares');
-  const [cpf, setCpf] = useState('123.456.789-00');
-  const [email, setEmail] = useState('nilo@email.com');
-  const [telefone, setTelefone] = useState('(21) 99999-9999');
+  const [id, setId] = useState<number | null>(null);
+  const [nome, setNome] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [carregando, setCarregando] = useState(true);
+
+  async function carregarMinhaConta() {
+    try {
+      const response = await api.get("/me");
+
+      console.log("MINHA CONTA:", response.data);
+
+      setId(response.data.id);
+      setNome(response.data.nome);
+      setCpf(response.data.cpf);
+      setEmail(response.data.email);
+      setTelefone(response.data.telefone);
+    } catch (error: any) {
+      console.log("ERRO MINHA CONTA:", error?.response?.data || error?.message);
+      window.alert("Erro ao carregar dados da conta.");
+    } finally {
+      setCarregando(false);
+    }
+  }
 
   function handleSalvarAlteracoes() {
-    Alert.alert(
-      'Dados atualizados',
-      'As alterações da sua conta foram salvas com sucesso.'
-    );
+    window.alert("Edição de conta será ajustada na próxima etapa.");
   }
 
   function formatCpf(value: string) {
-    const onlyNumbers = value.replace(/\D/g, '');
+    const onlyNumbers = value.replace(/\D/g, "");
 
     return onlyNumbers
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
       .slice(0, 14);
   }
 
   function formatPhone(value: string) {
-    const onlyNumbers = value.replace(/\D/g, '');
+    const onlyNumbers = value.replace(/\D/g, "");
 
     return onlyNumbers
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2')
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
       .slice(0, 15);
+  }
+
+  useEffect(() => {
+    carregarMinhaConta();
+  }, []);
+
+  if (carregando) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Carregando conta...</Text>
+      </View>
+    );
   }
 
   return (
@@ -68,9 +99,10 @@ export default function MinhaContaScreen() {
           keyboardType="phone-pad"
         />
 
-        <CustomButton title="Salvar alterações"
-        onPress={handleSalvarAlteracoes}
-          />
+        <CustomButton
+          title="Salvar alterações"
+          onPress={handleSalvarAlteracoes}
+        />
       </View>
 
       <CustomButton
@@ -86,25 +118,25 @@ export default function MinhaContaScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D2B45',
-    justifyContent: 'center',
+    backgroundColor: "#0D2B45",
+    justifyContent: "center",
     paddingHorizontal: 24,
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 28,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
     marginBottom: 28,
   },
   formArea: {
-    width: '100%',
+    width: "100%",
     maxWidth: 420,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 18,
   },
   backButton: {
     maxWidth: 220,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });

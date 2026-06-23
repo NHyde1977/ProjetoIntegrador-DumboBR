@@ -1,64 +1,87 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
-import CustomButton from '../components/CustomButton';
-import CustomInput from '../components/CustomInput';
+import { router } from "expo-router";
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import CustomButton from "../components/CustomButton";
+import CustomInput from "../components/CustomInput";
+import api from "../services/api";
 
-export default 
-
-function AdicionarEnderecoScreen() {
-  const [cep, setCep] = useState('');
-  const [logradouro, setLogradouro] = useState('');
-  const [numero, setNumero] = useState('');
-  const [complemento, setComplemento] = useState('');
-  const [bairro, setBairro] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [estado, setEstado] = useState('');
+export default function AdicionarEnderecoScreen() {
+  const [cep, setCep] = useState("");
+  const [logradouro, setLogradouro] = useState("");
+  const [numero, setNumero] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
 
   function formatCep(value: string) {
-    const onlyNumbers = value.replace(/\D/g, '');
+    const onlyNumbers = value.replace(/\D/g, "");
 
     return onlyNumbers
-      .replace(/(\d{5})(\d)/, '$1-$2')
+      .replace(/(\d{5})(\d)/, "$1-$2")
       .slice(0, 9);
   }
 
-  function handleSalvarEndereco() {
-  if (cep.length < 9) {
-    Alert.alert('Erro', 'Informe um CEP válido.');
-    return;
-  }
+  async function handleSalvarEndereco() {
+    if (cep.length < 9) {
+      window.alert("Informe um CEP válido.");
+      return;
+    }
 
-  if (!logradouro.trim()) {
-    Alert.alert('Erro', 'Informe o logradouro.');
-    return;
-  }
+    if (!logradouro.trim()) {
+      window.alert("Informe o logradouro.");
+      return;
+    }
 
-  if (!numero.trim()) {
-    Alert.alert('Erro', 'Informe o número.');
-    return;
-  }
+    if (!numero.trim()) {
+      window.alert("Informe o número.");
+      return;
+    }
 
-  if (!bairro.trim()) {
-    Alert.alert('Erro', 'Informe o bairro.');
-    return;
-  }
+    if (!bairro.trim()) {
+      window.alert("Informe o bairro.");
+      return;
+    }
 
-  if (!cidade.trim()) {
-    Alert.alert('Erro', 'Informe a cidade.');
-    return;
-  }
+    if (!cidade.trim()) {
+      window.alert("Informe a cidade.");
+      return;
+    }
 
-  if (!estado.trim()) {
-    Alert.alert('Erro', 'Informe o estado.');
-    return;
-  }
+    if (!estado.trim()) {
+      window.alert("Informe o estado.");
+      return;
+    }
 
-  Alert.alert(
-    'Endereço salvo',
-    'O endereço foi cadastrado com sucesso.'
-  );
-}
+    try {
+      const body = {
+        cep,
+        logradouro: logradouro.trim(),
+        numero: numero.trim(),
+        complemento: complemento.trim(),
+        bairro: bairro.trim(),
+        cidade: cidade.trim(),
+        estado: estado.trim().toUpperCase(),
+        usuarioId: 0,
+      };
+
+      console.log("ENVIANDO ENDERECO:", body);
+
+      const response = await api.post("/me/enderecos", body);
+
+      console.log("ENDERECO CADASTRADO:", response.data);
+
+      window.alert("Endereço cadastrado com sucesso!");
+
+      router.push("/meus-enderecos");
+    } catch (error: any) {
+      console.log("ERRO ENDERECO:", error?.response?.data || error?.message);
+
+      window.alert(
+        JSON.stringify(error?.response?.data || error?.message)
+      );
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -109,8 +132,10 @@ function AdicionarEnderecoScreen() {
           onChangeText={setEstado}
         />
 
-        <CustomButton title="Salvar endereço"
-        onPress={handleSalvarEndereco}/>
+        <CustomButton
+          title="Salvar endereço"
+          onPress={handleSalvarEndereco}
+        />
       </View>
 
       <CustomButton
@@ -126,25 +151,25 @@ function AdicionarEnderecoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D2B45',
-    justifyContent: 'center',
+    backgroundColor: "#0D2B45",
+    justifyContent: "center",
     paddingHorizontal: 24,
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 28,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: "700",
+    textAlign: "center",
     marginBottom: 28,
   },
   formArea: {
-    width: '100%',
+    width: "100%",
     maxWidth: 420,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 18,
   },
   backButton: {
     maxWidth: 220,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });
