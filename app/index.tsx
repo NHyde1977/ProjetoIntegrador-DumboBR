@@ -4,11 +4,16 @@ import React, { useState } from "react";
 import { Alert, Image, StyleSheet, View } from "react-native";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
+import { useTheme } from "../contexts/ThemeContext";
 import api from "../services/api";
+import { DarkTheme, LightTheme } from "../themes/colors";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const { tema } = useTheme();
+
+  const colors = tema === "claro" ? LightTheme : DarkTheme;
 
   async function handleLogin() {
     if (!email.trim()) {
@@ -52,7 +57,14 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.background,
+        },
+      ]}
+    >
       <View style={styles.logoArea}>
         <Image
           source={require("../assets/images/logo-dumbobr.png")}
@@ -109,7 +121,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0D2B45",
     paddingHorizontal: 22,
     paddingTop: 50,
     paddingBottom: 30,
