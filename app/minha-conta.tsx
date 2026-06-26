@@ -11,6 +11,7 @@ export default function MinhaContaScreen() {
   const [cpf, setCpf] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [senha, setSenha] = useState("");
   const [carregando, setCarregando] = useState(true);
 
   async function carregarMinhaConta() {
@@ -32,8 +33,65 @@ export default function MinhaContaScreen() {
     }
   }
 
-  function handleSalvarAlteracoes() {
-    window.alert("Edição de conta será ajustada na próxima etapa.");
+  async function handleSalvarAlteracoes() {
+    if (!id) {
+      window.alert("Usuário não identificado.");
+      return;
+    }
+
+    if (!nome.trim()) {
+      window.alert("Informe o nome.");
+      return;
+    }
+
+    if (cpf.length < 14) {
+      window.alert("Informe um CPF válido.");
+      return;
+    }
+
+    if (!email.trim() || !email.includes("@")) {
+      window.alert("Informe um email válido.");
+      return;
+    }
+
+    if (telefone.length < 15) {
+      window.alert("Informe um telefone válido.");
+      return;
+    }
+
+    if (!senha.trim()) {
+      window.alert("Informe a senha para salvar as alterações.");
+      return;
+    }
+
+    try {
+      const body = {
+        nome: nome.trim(),
+        cpf,
+        email: email.trim(),
+        telefone,
+        senha,
+      };
+
+      console.log("ATUALIZANDO CONTA:", body);
+
+      const response = await api.put(`/usuarios/${id}`, body);
+
+      console.log("CONTA ATUALIZADA:", response.data);
+
+      window.alert("Dados atualizados com sucesso!");
+
+      setSenha("");
+
+      carregarMinhaConta();
+    } catch (error: any) {
+      console.log(
+        "ERRO ATUALIZAR CONTA:",
+        error?.response?.data || error?.message,
+      );
+
+      window.alert(JSON.stringify(error?.response?.data || error?.message));
+    }
   }
 
   function formatCpf(value: string) {
@@ -99,6 +157,13 @@ export default function MinhaContaScreen() {
           keyboardType="phone-pad"
         />
 
+        <CustomInput
+          placeholder="Digite sua senha para confirmar"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
+
         <CustomButton
           title="Salvar alterações"
           onPress={handleSalvarAlteracoes}
@@ -109,7 +174,7 @@ export default function MinhaContaScreen() {
         title="Voltar"
         variant="secondary"
         style={styles.backButton}
-        onPress={() => router.back()}
+        onPress={() => router.push("/configuracoes")}
       />
     </View>
   );

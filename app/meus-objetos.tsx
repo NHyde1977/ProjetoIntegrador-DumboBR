@@ -1,12 +1,14 @@
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
 import CustomButton from "../components/CustomButton";
 import api from "../services/api";
 
@@ -29,11 +31,14 @@ export default function MeusObjetosScreen() {
   async function carregarObjetos() {
     try {
       const response = await api.get("/me/objetos");
+
       console.log("OBJETOS:", response.data);
+
       setObjetos(response.data);
     } catch (error: any) {
       console.log("ERRO OBJETOS:", error?.response?.data || error?.message);
-      window.alert("Erro ao carregar objetos.");
+
+      Alert.alert("Erro", "Erro ao carregar objetos.");
     } finally {
       setCarregando(false);
     }
@@ -42,6 +47,105 @@ export default function MeusObjetosScreen() {
   useEffect(() => {
     carregarObjetos();
   }, []);
+
+  function formatarMoeda(valor: number) {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
+
+  function calcularTotal(objeto: ObjetoRastreado) {
+    return (
+      objeto.valorBem +
+      objeto.valorFrete +
+      objeto.taxaAlfandegaria +
+      objeto.outrosCustos
+    );
+  }
+
+  function somarCampo(campo: keyof ObjetoRastreado) {
+    return objetos.reduce((total, objeto) => {
+      const valor = objeto[campo];
+
+      if (typeof valor === "number") {
+        return total + valor;
+      }
+
+      return total;
+    }, 0);
+  }
+
+  function gerarRelatorio() {
+    const totalObjetos = objetos.length;
+    const totalValorBem = somarCampo("valorBem");
+    const totalFrete = somarCampo("valorFrete");
+    const totalTaxas = somarCampo("taxaAlfandegaria");
+    const totalOutrosCustos = somarCampo("outrosCustos");
+
+    const totalGeral =
+      totalValorBem + totalFrete + totalTaxas + totalOutrosCustos;
+
+    const entregues = objetos.filter(
+      (objeto) => objeto.status === "ENTREGUE",
+    ).length;
+
+    const emTransito = objetos.filter(
+      (objeto) => objeto.status === "EM_TRANSITO",
+    ).length;
+
+    const postados = objetos.filter(
+      (objeto) => objeto.status === "POSTADO",
+    ).length;
+
+    const semRegistro = objetos.filter(
+      (objeto) => objeto.status === "SEM_REGISTRO",
+    ).length;
+
+    window.alert(
+      `RELATÓRIO GERAL DUMBOBR
+
+Objetos cadastrados: ${totalObjetos}
+
+Status:
+- Sem registro: ${semRegistro}
+- Postados: ${postados}
+- Em trânsito: ${emTransito}
+- Entregues: ${entregues}
+
+Custos:
+- Valor dos bens: ${formatarMoeda(totalValorBem)}
+- Fretes: ${formatarMoeda(totalFrete)}
+- Taxas alfandegárias: ${formatarMoeda(totalTaxas)}
+- Outros custos: ${formatarMoeda(totalOutrosCustos)}
+
+TOTAL GERAL:
+${formatarMoeda(totalGeral)}`,
+    );
+  }
+
+  function traduzirStatus(status: string) {
+    switch (status) {
+      case "SEM_REGISTRO":
+        return "⚪ Sem registro";
+      case "POSTADO":
+        return "🔵 Postado";
+      case "EM_TRANSITO":
+        return "🟡 Em trânsito";
+      case "AGUARDANDO_PAGAMENTO":
+        return "🟠 Aguardando pagamento";
+      case "LIBERADO_PELA_ALFANDEGA":
+        return "🟣 Liberado pela alfândega";
+      case "SAIU_PARA_ENTREGA":
+        return "🚚 Saiu para entrega";
+      case "ENTREGUE":
+        return "🟢 Entregue";
+      case "DEVOLVIDO":
+        return "🔴 Devolvido";
+      default:
+        return status;
+    }
+  }
 
   const objetosFiltrados =
     statusSelecionado === "Todos"
@@ -76,7 +180,7 @@ export default function MeusObjetosScreen() {
                 statusSelecionado === status && styles.tabTextAtivo,
               ]}
             >
-              {status}
+              {status === "Todos" ? "Todos" : traduzirStatus(status)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -98,20 +202,44 @@ export default function MeusObjetosScreen() {
         }
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{item.codigoRastreio}</Text>
-            <Text style={styles.cardDescription}>Status: {item.status}</Text>
-            <Text style={styles.cardDescription}>
-              Valor do bem: R$ {item.valorBem}
-            </Text>
-            <Text style={styles.cardDescription}>
-              Frete: R$ {item.valorFrete}
-            </Text>
-            <Text style={styles.cardDescription}>
-              Taxa alfandegária: R$ {item.taxaAlfandegaria}
-            </Text>
-            <Text style={styles.cardDescription}>
-              Outros custos: R$ {item.outrosCustos}
-            </Text>
+            <Text style={styles.codigo}>📦 {item.codigoRastreio}</Text>
+
+            <Text style={styles.status}>{traduzirStatus(item.status)}</Text>
+
+            <View style={styles.divisor} />
+
+            <View style={styles.linha}>
+              <Text style={styles.label}>Valor do bem</Text>
+              <Text style={styles.valor}>{formatarMoeda(item.valorBem)}</Text>
+            </View>
+
+            <View style={styles.linha}>
+              <Text style={styles.label}>Frete</Text>
+              <Text style={styles.valor}>{formatarMoeda(item.valorFrete)}</Text>
+            </View>
+
+            <View style={styles.linha}>
+              <Text style={styles.label}>Taxa alfandegária</Text>
+              <Text style={styles.valor}>
+                {formatarMoeda(item.taxaAlfandegaria)}
+              </Text>
+            </View>
+
+            <View style={styles.linha}>
+              <Text style={styles.label}>Outros custos</Text>
+              <Text style={styles.valor}>
+                {formatarMoeda(item.outrosCustos)}
+              </Text>
+            </View>
+
+            <View style={styles.divisor} />
+
+            <View style={styles.linha}>
+              <Text style={styles.totalLabel}>TOTAL</Text>
+              <Text style={styles.totalValor}>
+                {formatarMoeda(calcularTotal(item))}
+              </Text>
+            </View>
           </View>
         )}
       />
@@ -122,6 +250,7 @@ export default function MeusObjetosScreen() {
             title="Gerar relatório"
             variant="secondary"
             style={styles.smallButton}
+            onPress={gerarRelatorio}
           />
 
           <CustomButton
@@ -131,20 +260,13 @@ export default function MeusObjetosScreen() {
             onPress={() => router.push("/configuracoes")}
           />
         </View>
-
-        <CustomButton
-          title="Filtrar status"
-          variant="secondary"
-          style={styles.bottomButton}
-          onPress={() => router.push("/filtrar-status")}
-        />
       </View>
 
       <CustomButton
         title="Voltar"
         variant="secondary"
         style={styles.backButton}
-        onPress={() => router.back()}
+        onPress={() => router.push("/")}
       />
     </View>
   );
@@ -194,6 +316,9 @@ const styles = StyleSheet.create({
   tabTextAtivo: {
     color: "#5E42D8",
   },
+  registerButton: {
+    marginBottom: 18,
+  },
   listArea: {
     flex: 1,
     marginBottom: 18,
@@ -210,21 +335,56 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#163652",
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 16,
+    padding: 18,
     borderWidth: 1,
     borderColor: "#244766",
   },
-  cardTitle: {
+  codigo: {
     color: "#FFFFFF",
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  cardDescription: {
+  status: {
+    color: "#F2EEFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  divisor: {
+    height: 1,
+    backgroundColor: "#244766",
+    marginVertical: 12,
+  },
+  linha: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 12,
+  },
+  label: {
     color: "#D7DCE2",
     fontSize: 14,
-    lineHeight: 20,
+    flex: 1,
+  },
+  valor: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "right",
+  },
+  totalLabel: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  totalValor: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "800",
+    textAlign: "right",
   },
   actionsArea: {
     marginBottom: 14,
@@ -237,15 +397,8 @@ const styles = StyleSheet.create({
   smallButton: {
     flex: 1,
   },
-  bottomButton: {
-    alignSelf: "center",
-    minWidth: 180,
-  },
   backButton: {
     maxWidth: 200,
     alignSelf: "center",
-  },
-  registerButton: {
-    marginBottom: 18,
   },
 });

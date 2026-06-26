@@ -14,12 +14,39 @@ export default function AdicionarEnderecoScreen() {
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
 
+  async function buscarCep(cepFormatado: string) {
+    const cepLimpo = cepFormatado.replace(/\D/g, "");
+
+    if (cepLimpo.length !== 8) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://viacep.com.br/ws/${cepLimpo}/json/`,
+      );
+      const data = await response.json();
+
+      if (data.erro) {
+        window.alert("CEP não encontrado.");
+        return;
+      }
+
+      setLogradouro(data.logradouro || "");
+      setBairro(data.bairro || "");
+      setCidade(data.localidade || "");
+      setEstado(data.uf || "");
+      setComplemento("");
+    } catch (error) {
+      console.log("ERRO CEP:", error);
+      window.alert("Erro ao buscar CEP.");
+    }
+  }
+
   function formatCep(value: string) {
     const onlyNumbers = value.replace(/\D/g, "");
 
-    return onlyNumbers
-      .replace(/(\d{5})(\d)/, "$1-$2")
-      .slice(0, 9);
+    return onlyNumbers.replace(/(\d{5})(\d)/, "$1-$2").slice(0, 9);
   }
 
   async function handleSalvarEndereco() {
@@ -77,9 +104,7 @@ export default function AdicionarEnderecoScreen() {
     } catch (error: any) {
       console.log("ERRO ENDERECO:", error?.response?.data || error?.message);
 
-      window.alert(
-        JSON.stringify(error?.response?.data || error?.message)
-      );
+      window.alert(JSON.stringify(error?.response?.data || error?.message));
     }
   }
 
@@ -91,7 +116,11 @@ export default function AdicionarEnderecoScreen() {
         <CustomInput
           placeholder="CEP"
           value={cep}
-          onChangeText={(text) => setCep(formatCep(text))}
+          onChangeText={(text) => {
+            const cepFormatado = formatCep(text);
+            setCep(cepFormatado);
+            buscarCep(cepFormatado);
+          }}
           keyboardType="numeric"
         />
 
@@ -132,17 +161,14 @@ export default function AdicionarEnderecoScreen() {
           onChangeText={setEstado}
         />
 
-        <CustomButton
-          title="Salvar endereço"
-          onPress={handleSalvarEndereco}
-        />
+        <CustomButton title="Salvar endereço" onPress={handleSalvarEndereco} />
       </View>
 
       <CustomButton
         title="Voltar"
         variant="secondary"
         style={styles.backButton}
-        onPress={() => router.back()}
+        onPress={() => router.push("/meus-enderecos")}
       />
     </View>
   );

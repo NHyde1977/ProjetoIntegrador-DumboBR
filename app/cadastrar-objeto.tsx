@@ -116,6 +116,12 @@ export default function CadastrarObjetoScreen() {
           title="Cadastrar Objeto"
           onPress={handleCadastrarObjeto}
         />
+
+        <CustomButton
+          title="Voltar para Meus Objetos"
+          variant="secondary"
+          onPress={() => router.push("/meus-objetos")}
+        />
       </View>
 
       <CustomButton
@@ -164,5 +170,6 @@ const styles = StyleSheet.create({
   backButton: {
     maxWidth: 220,
     alignSelf: "center",
+    marginTop: 12,
   },
 });

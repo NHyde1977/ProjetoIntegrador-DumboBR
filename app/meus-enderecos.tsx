@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import CustomButton from "../components/CustomButton";
 import api from "../services/api";
 
@@ -49,31 +49,27 @@ export default function MeusEnderecosScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Meus Endereços</Text>
 
-      <View style={styles.addressList}>
-        {enderecos.length === 0 ? (
-          <Text style={styles.emptyText}>Nenhum endereço encontrado.</Text>
-        ) : (
-          enderecos.map((endereco) => (
-            <View key={endereco.id} style={styles.addressCard}>
-              <Text style={styles.addressTitle}>
-                {endereco.logradouro}, {endereco.numero}
-              </Text>
+      <ScrollView
+        style={styles.addressList}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {enderecos.map((endereco) => (
+          <View key={endereco.id} style={styles.addressCard}>
+            <Text style={styles.addressTitle}>
+              {endereco.logradouro}, {endereco.numero}
+            </Text>
 
-              {endereco.complemento ? (
-                <Text style={styles.addressText}>{endereco.complemento}</Text>
-              ) : null}
+            <Text style={styles.addressText}>{endereco.bairro}</Text>
 
-              <Text style={styles.addressText}>{endereco.bairro}</Text>
+            <Text style={styles.addressText}>
+              {endereco.cidade} - {endereco.estado}
+            </Text>
 
-              <Text style={styles.addressText}>
-                {endereco.cidade} - {endereco.estado}
-              </Text>
-
-              <Text style={styles.addressText}>CEP: {endereco.cep}</Text>
-            </View>
-          ))
-        )}
-      </View>
+            <Text style={styles.addressText}>CEP: {endereco.cep}</Text>
+          </View>
+        ))}
+      </ScrollView>
 
       <View style={styles.actionsArea}>
         <CustomButton
@@ -85,7 +81,7 @@ export default function MeusEnderecosScreen() {
           title="Voltar"
           variant="secondary"
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => router.push("/configuracoes")}
         />
       </View>
     </View>
@@ -142,5 +138,9 @@ const styles = StyleSheet.create({
   backButton: {
     maxWidth: 220,
     alignSelf: "center",
+  },
+  addressListContent: {
+    gap: 14,
+    paddingBottom: 20,
   },
 });
